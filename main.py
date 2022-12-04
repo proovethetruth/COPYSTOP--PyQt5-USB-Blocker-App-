@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget, QLabel, QPush
 from PyQt5.QtGui import QPixmap, QFont, QFontDatabase
 
 
-
 class BorderlessWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -112,10 +111,7 @@ class BorderlessWindow(QWidget):
         self.infoHeader.setFont(QFont("Josefin Slab", 20))
         self.infoHeader.setStyleSheet("color: white")
 
-        infoFile = open(resource_path("info.txt"), "r")
-        self.infoText = QLabel(infoFile.readline())
-        self.version = QLabel(infoFile.readline(), self)
-
+        self.infoText = QLabel("This is a simple PyQt5 Application, which allows user to prevent unauthorized copying from USB drives.")
         self.infoText.setFont(QFont("Josefin Slab", 13))
         self.infoText.setStyleSheet("color: white")
         self.infoText.setWordWrap(True)
@@ -138,6 +134,7 @@ class BorderlessWindow(QWidget):
         self.infoBoxStatus = False
         self.infoBox.hide()
 
+        self.version = QLabel("VERSION: 1.0", self)
         self.version.setFont(QFont("Josefin Slab", 20))
         self.version.setStyleSheet("color: white")
         self.version.move(150, 355)

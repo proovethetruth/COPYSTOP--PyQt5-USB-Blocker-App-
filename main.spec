@@ -8,7 +8,8 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('Resourses/mainframe.png', './Resourses/'), ('Resourses/content_box.png', './Resourses/')],
+
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -20,13 +21,6 @@ a = Analysis(
     noarchive=False,
 )
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-
-a.datas([('Resourses/mainframe.png', '.'),
-         ('Resourses/content_box.png' '.'),
-         ('Resourses/info_icon.png' '.'),
-         ('Resourses/info_box.png' '.'),
-         ('Resourses/info.txt' '.'),
-         ])
 
 exe = EXE(
     pyz,

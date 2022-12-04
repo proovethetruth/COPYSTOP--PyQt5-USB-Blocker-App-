@@ -5,6 +5,6 @@ def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath(".\\Resourses/")
+        base_path = os.environ.get("_MEIPASS2", os.path.abspath(".\Resourses"))
 
     return os.path.join(base_path, relative_path)
