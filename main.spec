@@ -21,6 +21,13 @@ a = Analysis(
 )
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+a.datas([('Resourses/mainframe.png', '.'),
+         ('Resourses/content_box.png' '.'),
+         ('Resourses/info_icon.png' '.'),
+         ('Resourses/info_box.png' '.'),
+         ('Resourses/info.txt' '.'),
+         ])
+
 exe = EXE(
     pyz,
     a.scripts,

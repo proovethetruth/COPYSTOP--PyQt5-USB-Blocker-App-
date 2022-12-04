@@ -1,5 +1,6 @@
 
 from AnimatedToggle import *
+from resoursePath import *
 
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QGraphicsDropShadowEffect
 from PyQt5.QtGui import QIcon, QPixmap, QFont
@@ -12,7 +13,7 @@ class USBWidget(QWidget):
         self.centerWidget.setObjectName("usbWidget")
 
         self.usbIcon = QLabel()
-        self.usbIcon.setPixmap(QPixmap(".\\Resourses/usb_unlocked.png"))
+        self.usbIcon.setPixmap(QPixmap(resource_path("usb_unlocked.png")))
 
         self.usbName = QLabel("Name_Of_Usb")
         self.usbName.setFont(QFont("Josefin Slab", 15))

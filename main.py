@@ -1,11 +1,12 @@
 
 from USBWidget import *
+from resoursePath import *
 
-
-import sys, time
+import sys
 from PyQt5.QtCore import Qt, QPoint, QSize, QPropertyAnimation
 from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QGraphicsOpacityEffect
 from PyQt5.QtGui import QPixmap, QFont, QFontDatabase
+
 
 
 class BorderlessWindow(QWidget):
@@ -17,7 +18,7 @@ class BorderlessWindow(QWidget):
         self.oldPos = self.pos()
 
         self.centralWidget = QLabel(self)
-        self.centralWidget.setPixmap(QPixmap(".\\Resourses/mainframe.png"))
+        self.centralWidget.setPixmap(QPixmap(resource_path("mainframe.png")))
 
         QFontDatabase.addApplicationFont(".\\Resourses\\font\\static\\JosefinSlab-SemiBold.ttf")
         QFontDatabase.addApplicationFont(".\\Resourses\\font\\static\\JosefinSlab-Light.ttf")
@@ -49,7 +50,7 @@ class BorderlessWindow(QWidget):
         self.exitButton.clicked.connect(sys.exit)
 
         self.contentBox = QLabel(self)
-        self.contentBox.setPixmap(QPixmap(".\\Resourses/content_box.png"))
+        self.contentBox.setPixmap(QPixmap(resource_path("content_box.png")))
         self.contentBox.move(15, 67)
 
         self.usbName = QLabel("USB NAME")
@@ -95,7 +96,7 @@ class BorderlessWindow(QWidget):
 
         self.infoButton = QPushButton(self)
         icon = QIcon()
-        icon.addPixmap(QPixmap(".\\Resourses/info_icon.png"), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QPixmap(resource_path("info_icon.png")), QIcon.Normal, QIcon.Off)
         self.infoButton.setIcon(icon)
         self.infoButton.setIconSize(QSize(35, 35))
         self.infoButton.setStyleSheet("border: none;")
@@ -104,14 +105,14 @@ class BorderlessWindow(QWidget):
 
         self.infoBox = QLabel(self)
         self.infoBox.move(0, 67)
-        self.infoBox.setPixmap(QPixmap(".\\Resourses/info_box.png"))
+        self.infoBox.setPixmap(QPixmap(resource_path("info_box.png")))
         
         self.infoLayout = QVBoxLayout()
         self.infoHeader = QLabel("Information")
         self.infoHeader.setFont(QFont("Josefin Slab", 20))
         self.infoHeader.setStyleSheet("color: white")
 
-        infoFile = open(".\\Resourses/info.txt", "r")
+        infoFile = open(resource_path("info.txt"), "r")
         self.infoText = QLabel(infoFile.readline())
         self.version = QLabel(infoFile.readline(), self)
 
@@ -187,6 +188,7 @@ class BorderlessWindow(QWidget):
         self.animation.setStartValue(0)
         self.animation.setEndValue(1)
         self.animation.start()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
