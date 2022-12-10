@@ -1,12 +1,13 @@
 
-from USBWidget import *
+from UsbWidget import *
+from UsbListener import *
 from resoursePath import *
 
-import sys
-from PyQt5.QtCore import Qt, QPoint, QSize, QPropertyAnimation
-from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QGraphicsOpacityEffect
-from PyQt5.QtGui import QPixmap, QFont, QFontDatabase
 
+import sys, wmi
+from PyQt5.QtCore import Qt, QPoint, QSize, QPropertyAnimation
+from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QGraphicsOpacityEffect, QFrame
+from PyQt5.QtGui import QPixmap, QFont, QFontDatabase
 
 class BorderlessWindow(QWidget):
     def __init__(self):
@@ -68,21 +69,61 @@ class BorderlessWindow(QWidget):
         self.titleLayout.addStretch(1)
         self.titleLayout.setContentsMargins(50, 0, 0, 0)
         self.titleWidget.setLayout(self.titleLayout)
-        self.titleWidget.setMaximumHeight(50)
+        self.titleWidget.setMinimumHeight(35)
 
 
         self.usbList = QVBoxLayout()
-        for i in range(1):
-            self.usbList.addWidget(USBWidget())
+        for usbDrive in wmi.WMI().Win32_LogicalDisk(DriveType = 2):
+            self.usbList.addWidget(UsbWidget(usbDrive.VolumeName + " (" + usbDrive.name + ")"))
         self.usbList.addStretch()
+
+        self.setUsbListener()
 
         self.usbContainer = QWidget()
         self.usbContainer.setLayout(self.usbList)
 
         self.usbScrollArea = QScrollArea()
+        self.usbScrollArea.setFrameShape(QFrame.NoFrame)
         self.usbScrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.usbScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.usbScrollArea.setWidgetResizable(True)
+        self.usbScrollArea.setMaximumHeight(210)
+        self.usbScrollArea.setStyleSheet('''
+            QScrollBar:vertical {
+                border: none;
+                background: #5c5552;
+                width: 6px;
+                border-radius: 0px;
+                background:none;
+            }
+
+            QScrollBar::handle:vertical {	
+                background-color: rgb(143, 133, 125);
+                border-radius: 2px;
+                min-height: 30px;
+            }
+            QScrollBar::handle:vertical:hover{	
+                background-color: #EF2D56;
+            }
+            QScrollBar::handle:vertical:pressed {	
+                background-color: rgb(125, 46, 52);
+            }
+
+            QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+
+            QScrollBar::add-line:vertical {
+                height: 0px;
+            }
+
+            QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+                background: none;
+            }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
+            }
+            ''')
         self.usbScrollArea.setWidget(self.usbContainer)
 
         self.contentLayout = QVBoxLayout()
@@ -90,7 +131,7 @@ class BorderlessWindow(QWidget):
         self.contentLayout.setContentsMargins(0, 0, 0, 0)
         self.contentLayout.addWidget(self.titleWidget)
         self.contentLayout.addWidget(self.usbScrollArea)
-
+        self.contentLayout.addStretch()
         self.contentBox.setLayout(self.contentLayout)
 
         self.infoButton = QPushButton(self)
@@ -135,9 +176,9 @@ class BorderlessWindow(QWidget):
         self.infoBox.hide()
 
         self.version = QLabel("VERSION: 1.0", self)
-        self.version.setFont(QFont("Josefin Slab", 20))
+        self.version.setFont(QFont("Josefin Slab", 19))
         self.version.setStyleSheet("color: white")
-        self.version.move(150, 355)
+        self.version.move(160, 357)
 
         self.show()
 
@@ -185,6 +226,27 @@ class BorderlessWindow(QWidget):
         self.animation.setStartValue(0)
         self.animation.setEndValue(1)
         self.animation.start()
+
+    def setUsbListener(self):
+        # Step 2: Create a QThread object
+        self.thread = QThread()
+
+        # Step 3: Create a worker object
+        self.UsbListenerWorker = UsbListener()
+
+        # Step 4: Move worker to the thread
+        self.UsbListenerWorker.moveToThread(self.thread)
+
+        # Step 5: Connect signals and slots
+        self.thread.started.connect(self.UsbListenerWorker.run)
+        self.UsbListenerWorker.receivedName.connect(self.printUsbName)
+
+        # Step 6: Start the thread
+        self.thread.start()
+    
+    def printUsbName(self, name):
+        self.usbList.addWidget(UsbWidget(name))
+
 
 
 if __name__ == '__main__':
