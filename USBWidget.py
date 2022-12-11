@@ -1,6 +1,9 @@
 
 from AnimatedToggle import *
+from UsbCrypt import UsbCrypt
 from resoursePath import *
+
+import stat
 
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QGraphicsDropShadowEffect
 from PyQt5.QtGui import QIcon, QPixmap, QFont
@@ -9,6 +12,7 @@ from PyQt5.QtCore import QSize
 class UsbWidget(QWidget):
     def __init__(self, inputName):
         super().__init__()
+        self.setObjectName(inputName)
         self.centerWidget = QWidget(self)
         self.centerWidget.setObjectName("usbWidget")
 
@@ -25,7 +29,7 @@ class UsbWidget(QWidget):
         self.usbName.setGraphicsEffect(shadow)
 
         self.switch = AnimatedToggle()
-        
+        self.switch.stateChanged.connect(self.switchUsbAccess)
 
         self.layout = QHBoxLayout()
         self.layout.setContentsMargins(5, 0, 0, 0)
@@ -53,5 +57,15 @@ class UsbWidget(QWidget):
     def setUsbName(self, name):
         self.usbName.setText(name)
 
-    def blockUSB(self):
-        return
+    def switchUsbAccess(self):
+        path = self.objectName()[-3:-1] + "\\"
+        UsbCrypt(path + "makima.jpg")
+        
+
+        # file = open(path + "makima.txt", "r")
+        # print(file.read())
+        # os.chmod(path, stat.S_IRUSR)
+        # for root, dirs, _ in os.walk(path):
+        #     for d in dirs:
+        #         os.chmod(os.path.join(root, d), stat.S_IROTH)
+        # #os.chmod(self.objectName()[-3:-1], stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)

@@ -1,11 +1,13 @@
 
+# Разработка программа защиты от несанкционированного копирования со съемных носителей
+
 from UsbWidget import *
 from UsbListener import *
 from resoursePath import *
 
-
 import sys, wmi
-from PyQt5.QtCore import Qt, QPoint, QSize, QPropertyAnimation
+
+from PyQt5.QtCore import Qt, QPoint, QSize, QPropertyAnimation, QThread
 from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QGraphicsOpacityEffect, QFrame
 from PyQt5.QtGui import QPixmap, QFont, QFontDatabase
 
@@ -81,12 +83,20 @@ class BorderlessWindow(QWidget):
 
         self.usbContainer = QWidget()
         self.usbContainer.setLayout(self.usbList)
+        self.usbContainer.setObjectName("usbContainerLink")
+        self.setStyleSheet("""
+            QWidget#usbContainerLink {
+                background-color: #f7f0f5;
+            }
+        """)
+        self.usbContainer.setStyleSheet("")
 
         self.usbScrollArea = QScrollArea()
         self.usbScrollArea.setFrameShape(QFrame.NoFrame)
         self.usbScrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.usbScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.usbScrollArea.setWidgetResizable(True)
+        self.usbScrollArea.setMinimumHeight(210)
         self.usbScrollArea.setMaximumHeight(210)
         self.usbScrollArea.setStyleSheet('''
             QScrollBar:vertical {
@@ -228,24 +238,34 @@ class BorderlessWindow(QWidget):
         self.animation.start()
 
     def setUsbListener(self):
-        # Step 2: Create a QThread object
         self.thread = QThread()
-
-        # Step 3: Create a worker object
         self.UsbListenerWorker = UsbListener()
-
-        # Step 4: Move worker to the thread
         self.UsbListenerWorker.moveToThread(self.thread)
 
-        # Step 5: Connect signals and slots
         self.thread.started.connect(self.UsbListenerWorker.run)
-        self.UsbListenerWorker.receivedName.connect(self.printUsbName)
+        self.UsbListenerWorker.receivedName.connect(self.addNewUsb)
+        self.UsbListenerWorker.removedName.connect(self.removeUsb)
 
-        # Step 6: Start the thread
         self.thread.start()
     
-    def printUsbName(self, name):
-        self.usbList.addWidget(UsbWidget(name))
+    def addNewUsb(self, usbName):
+        tempUsb = UsbWidget(usbName)
+
+        # opacity = QGraphicsOpacityEffect()
+        # opacity.setOpacity(0.0)
+        # tempUsb.setGraphicsEffect(opacity)
+
+        self.usbList.insertWidget(0, tempUsb)
+        # self.unfade(tempUsb)
+    
+    def removeUsb(self, usbName):
+        index = self.usbList.count() - 1
+        while index >= 0:
+            myWidget = self.usbList.itemAt(index).widget()
+            if myWidget != None:
+                if myWidget.objectName() == usbName:
+                    self.usbList.removeWidget(myWidget)
+            index -= 1
 
 
 
