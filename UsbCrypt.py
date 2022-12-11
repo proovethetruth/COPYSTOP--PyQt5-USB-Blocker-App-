@@ -1,81 +1,103 @@
 
-from UsbWidget import *
-
+import os
 from cryptography.fernet import Fernet
-import wmi, time, pythoncom
 from PyQt5.QtCore import QObject, pyqtSignal
 
-class UsbCrypt():
-    progress = pyqtSignal(int)
+class UsbCrypt(QObject):
+    progress = pyqtSignal(str)
+    finished = pyqtSignal()
 
-    def __init__(self, path,):
+    def __init__(self, mode, path, usbKeyName):
         super().__init__()
+        self.keyDirectory = ".\keys\\"
+        self.mode = mode
+        self.path = path
+        self.usbKeyName = usbKeyName
+        
+        self.filesCount = 0
+        for root_dir, cur_dir, files in os.walk(path):
+            self.filesCount += len(files)
 
-        self.keyDirectory = "keys/"
+    def run(self):
+        if self.mode == True:
+            self.encrypt()
+        else:
+            self.decrypt()
+        self.finished.emit()
 
-        # mykey = self.key_create()
-        # self.key_write(mykey, 'keys/public.key')
-        # loaded_key = self.key_load('keys/public.key')
+    def encrypt(self):
+        generatedKey = self.createKey()
+        self.saveKey(generatedKey, self.usbKeyName + ".key")
+        loadedKey = self.loadKey(self.usbKeyName + ".key")
 
-        self.file_encrypt(loaded_key, path, path)
-        self.file_decrypt(loaded_key, path, path)
+        self.encryptFile(loadedKey, self.path)
 
-    def encrypt(self, path, UsbName):
-        generatedKey = self.key_create()
-        self.key_write(generatedKey, self.keyDirectory + UsbName + ".key")
-        loaded_key = self.key_load(self.keyDirectory + UsbName + ".key")
+    def decrypt(self):
+        loadedKey = self.loadKey(self.usbKeyName + ".key")
+        self.decryptFile(loadedKey, self.path)
 
-        self.file_encrypt(loaded_key, path, path)
-
-    def key_create(self):
+    def createKey(self):
         key = Fernet.generate_key()
         return key
 
-    def key_write(self, key, key_name):
-        with open(key_name, 'wb') as mykey:
-            mykey.write(key)
+    def saveKey(self, key, usbKeyName):
+        with open(self.keyDirectory + usbKeyName, 'wb') as usbKey:
+            usbKey.write(key)
 
-    def key_load(self, key_name):
-        with open(key_name, 'rb') as mykey:
-            key = mykey.read()
+    def loadKey(self, usbKeyName):
+        with open(self.keyDirectory + usbKeyName, 'rb') as usbKey:
+            key = usbKey.read()
         return key
 
 
-    def file_encrypt(self, key, original_file, encrypted_file):
+    def encryptFile(self, key, path):
         f = Fernet(key)
 
-        with open(original_file, 'rb') as file:
-            original = file.read()
+        progressCounter = 0
+        for root, _, files in os.walk(path):
+            for file in files:
+                file_path = os.path.join(root, file)
 
-        encrypted = f.encrypt(original)
+                with open(file_path, 'rb') as file:
+                    original = file.read()
 
-        with open (encrypted_file, 'wb') as file:
-            file.write(encrypted)
+                encrypted = f.encrypt(original)
+
+                progressCounter += 1
+                self.progress.emit(str(round((progressCounter / self.filesCount) * 100)) + "%")
+
+                with open (file_path, 'wb') as file:
+                    file.write(encrypted)
+        
+        with open(path + "flag.crypt", 'w') as file:
+            file.write("True")
+
+        self.progress.emit("100%")
+        
 
 
-    def file_decrypt(self, key, encrypted_file, decrypted_file):
+    def decryptFile(self, key, path):
         f = Fernet(key)
 
-        with open(encrypted_file, 'rb') as file:
-            encrypted = file.read()
+        try:
+            os.remove(path + "flag.crypt")
+        except:
+            print("\n Unable to remove encryption flag: no flag is provided")
 
-        print(encrypted)
-        decrypted = f.decrypt(encrypted)
+        progressCounter = 0
+        for root, _, files in os.walk(path):
+            for file in files:
+                file_path = os.path.join(root, file)
 
-        with open(decrypted_file, 'wb') as file:
-            file.write(decrypted)
+                with open(file_path, 'rb') as file:
+                    encrypted = file.read()
 
-# class EncryptionWorker(QObject):
-#     def __init__(self, key):
-#         super().__init__()
+                decrypted = f.decrypt(encrypted)
+                
+                progressCounter += 1
+                self.progress.emit(str(round((progressCounter / self.filesCount) * 100)) + "%")
 
-#     def run():
-#         f = Fernet(key)
+                with open(file_path, 'wb') as file:
+                    file.write(decrypted)
 
-#         with open(original_file, 'rb') as file:
-#             original = file.read()
-
-#         encrypted = f.encrypt(original)
-
-#         with open (encrypted_file, 'wb') as file:
-#             file.write(encrypted)
+        self.progress.emit("100%")

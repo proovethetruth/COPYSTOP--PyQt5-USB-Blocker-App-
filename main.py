@@ -9,7 +9,7 @@ import sys, wmi
 
 from PyQt5.QtCore import Qt, QPoint, QSize, QPropertyAnimation, QThread
 from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QScrollArea, QGraphicsOpacityEffect, QFrame
-from PyQt5.QtGui import QPixmap, QFont, QFontDatabase
+from PyQt5.QtGui import QPixmap, QIcon, QFont, QFontDatabase
 
 class BorderlessWindow(QWidget):
     def __init__(self):
@@ -78,7 +78,6 @@ class BorderlessWindow(QWidget):
         for usbDrive in wmi.WMI().Win32_LogicalDisk(DriveType = 2):
             self.usbList.addWidget(UsbWidget(usbDrive.VolumeName + " (" + usbDrive.name + ")"))
         self.usbList.addStretch()
-
         self.setUsbListener()
 
         self.usbContainer = QWidget()
@@ -238,25 +237,19 @@ class BorderlessWindow(QWidget):
         self.animation.start()
 
     def setUsbListener(self):
-        self.thread = QThread()
+        self.listenerThread = QThread()
         self.UsbListenerWorker = UsbListener()
-        self.UsbListenerWorker.moveToThread(self.thread)
+        self.UsbListenerWorker.moveToThread(self.listenerThread)
 
-        self.thread.started.connect(self.UsbListenerWorker.run)
+        self.listenerThread.started.connect(self.UsbListenerWorker.run)
         self.UsbListenerWorker.receivedName.connect(self.addNewUsb)
         self.UsbListenerWorker.removedName.connect(self.removeUsb)
 
-        self.thread.start()
+        self.listenerThread.start()
     
     def addNewUsb(self, usbName):
         tempUsb = UsbWidget(usbName)
-
-        # opacity = QGraphicsOpacityEffect()
-        # opacity.setOpacity(0.0)
-        # tempUsb.setGraphicsEffect(opacity)
-
         self.usbList.insertWidget(0, tempUsb)
-        # self.unfade(tempUsb)
     
     def removeUsb(self, usbName):
         index = self.usbList.count() - 1

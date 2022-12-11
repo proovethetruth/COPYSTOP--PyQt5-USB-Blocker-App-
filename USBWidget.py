@@ -1,13 +1,11 @@
 
 from AnimatedToggle import *
-from UsbCrypt import UsbCrypt
+from UsbCrypt import *
 from resoursePath import *
 
-import stat
-
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QGraphicsDropShadowEffect
-from PyQt5.QtGui import QIcon, QPixmap, QFont
-from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtCore import Qt, QThread
 
 class UsbWidget(QWidget):
     def __init__(self, inputName):
@@ -29,6 +27,7 @@ class UsbWidget(QWidget):
         self.usbName.setGraphicsEffect(shadow)
 
         self.switch = AnimatedToggle()
+        self.checkState()
         self.switch.stateChanged.connect(self.switchUsbAccess)
 
         self.layout = QHBoxLayout()
@@ -57,15 +56,29 @@ class UsbWidget(QWidget):
     def setUsbName(self, name):
         self.usbName.setText(name)
 
-    def switchUsbAccess(self):
+    def checkState(self):
         path = self.objectName()[-3:-1] + "\\"
-        UsbCrypt(path + "makima.jpg")
-        
+        try:
+            with open(path + "flag.crypt", 'r') as file:
+                if file.read() == "True":
+                    self.switch.setChecked(True)
+        except:
+            print("No encryption flag is provided: new USB inserted")
 
-        # file = open(path + "makima.txt", "r")
-        # print(file.read())
-        # os.chmod(path, stat.S_IRUSR)
-        # for root, dirs, _ in os.walk(path):
-        #     for d in dirs:
-        #         os.chmod(os.path.join(root, d), stat.S_IROTH)
-        # #os.chmod(self.objectName()[-3:-1], stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    def switchUsbAccess(self, state):
+        path = self.objectName()[-3:-1] + "\\"
+        usbKeyName = self.objectName()[0:-5]
+        
+        if state == Qt.Checked:
+            self.UsbCryptWorker = UsbCrypt(True, path, usbKeyName)
+        else:
+            self.UsbCryptWorker = UsbCrypt(False, path, usbKeyName)
+
+        self.cryptoThread = QThread(parent = self)
+        self.UsbCryptWorker.moveToThread(self.cryptoThread)
+        self.UsbCryptWorker.progress.connect(self.printProgress)
+        self.cryptoThread.started.connect(self.UsbCryptWorker.run)
+        self.cryptoThread.start()
+
+    def printProgress(self, progress):
+        print(progress)
