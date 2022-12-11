@@ -1,7 +1,7 @@
 
 from UsbWidget import *
 
-import wmi, time, pythoncom
+import wmi, pythoncom
 from PyQt5.QtCore import QObject, pyqtSignal
 
 class UsbListener(QObject):
@@ -20,13 +20,22 @@ class UsbListener(QObject):
 
         insertionWatcher = c.watch_for(raw_wql = insertionQuery)
         removalWatcher = c.watch_for(raw_wql = removalQuery)
+        
         while True:
-            insertedUsb = insertionWatcher()
-            insertedUsbName = insertedUsb.VolumeName + " (" + insertedUsb.name + ")"
-            self.receivedName.emit(insertedUsbName)
+            try:
+                insertedUsb = insertionWatcher(timeout_ms = 10)
+            except wmi.x_wmi_timed_out:
+                pass
+            else:
+                if insertedUsb:
+                    insertedUsbName = insertedUsb.VolumeName + " (" + insertedUsb.name + ")"
+                    self.receivedName.emit(insertedUsbName)
 
-            removedUsb = removalWatcher()
-            removedUsbName = removedUsb.VolumeName + " (" + insertedUsb.name + ")"
-            self.removedName.emit(removedUsbName)
-
-            time.sleep(3)
+            try:
+                removedUsb = removalWatcher(timeout_ms = 10)
+            except wmi.x_wmi_timed_out:
+                pass
+            else:
+                if removedUsb:
+                    removedUsbName = removedUsb.VolumeName + " (" + removedUsb.name + ")"
+                    self.removedName.emit(removedUsbName)

@@ -3,7 +3,7 @@ from AnimatedToggle import *
 from UsbCrypt import *
 from resoursePath import *
 
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QGraphicsDropShadowEffect
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QGraphicsDropShadowEffect
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import Qt, QThread
 
@@ -27,7 +27,7 @@ class UsbWidget(QWidget):
         self.usbName.setGraphicsEffect(shadow)
 
         self.switch = AnimatedToggle()
-        self.checkState()
+        self.checkUsbState()
         self.switch.stateChanged.connect(self.switchUsbAccess)
 
         self.layout = QHBoxLayout()
@@ -56,29 +56,38 @@ class UsbWidget(QWidget):
     def setUsbName(self, name):
         self.usbName.setText(name)
 
-    def checkState(self):
+    def checkUsbState(self):
         path = self.objectName()[-3:-1] + "\\"
         try:
             with open(path + "flag.crypt", 'r') as file:
                 if file.read() == "True":
                     self.switch.setChecked(True)
         except:
-            print("No encryption flag is provided: new USB inserted")
+            pass
+
 
     def switchUsbAccess(self, state):
         path = self.objectName()[-3:-1] + "\\"
-        usbKeyName = self.objectName()[0:-5]
+        usbName = self.objectName()[0:-5]
         
-        if state == Qt.Checked:
-            self.UsbCryptWorker = UsbCrypt(True, path, usbKeyName)
-        else:
-            self.UsbCryptWorker = UsbCrypt(False, path, usbKeyName)
-
         self.cryptoThread = QThread(parent = self)
-        self.UsbCryptWorker.moveToThread(self.cryptoThread)
-        self.UsbCryptWorker.progress.connect(self.printProgress)
-        self.cryptoThread.started.connect(self.UsbCryptWorker.run)
+        if state == Qt.Checked:
+            self.usbCryptWorker = UsbCrypt(True, path, usbName)
+        else:
+            self.usbCryptWorker = UsbCrypt(False, path, usbName)
+
+        self.usbCryptWorker.moveToThread(self.cryptoThread)
+        self.usbCryptWorker.progress.connect(self.printProgress)
+        self.usbCryptWorker.finished.connect(self.stopThreads)
+        self.cryptoThread.started.connect(self.usbCryptWorker.run)
         self.cryptoThread.start()
+
+    def stopThreads(self):
+        self.cryptoThread.quit()
+        if self.cryptoThread.wait(3000):
+            self.cryptoThread.terminate()
+            self.cryptoThread.wait()
+        return
 
     def printProgress(self, progress):
         print(progress)

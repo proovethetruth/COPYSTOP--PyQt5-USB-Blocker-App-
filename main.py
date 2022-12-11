@@ -237,7 +237,7 @@ class BorderlessWindow(QWidget):
         self.animation.start()
 
     def setUsbListener(self):
-        self.listenerThread = QThread()
+        self.listenerThread = QThread(parent = self)
         self.UsbListenerWorker = UsbListener()
         self.UsbListenerWorker.moveToThread(self.listenerThread)
 
@@ -254,10 +254,11 @@ class BorderlessWindow(QWidget):
     def removeUsb(self, usbName):
         index = self.usbList.count() - 1
         while index >= 0:
-            myWidget = self.usbList.itemAt(index).widget()
-            if myWidget != None:
-                if myWidget.objectName() == usbName:
-                    self.usbList.removeWidget(myWidget)
+            currentUsbWidget = self.usbList.itemAt(index).widget()
+            if currentUsbWidget != None:
+                if currentUsbWidget.objectName() == usbName:
+                    # currentUsbWidget.stopThreads()
+                    self.usbList.removeWidget(currentUsbWidget)
             index -= 1
 
 

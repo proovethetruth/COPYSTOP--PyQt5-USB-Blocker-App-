@@ -3,51 +3,60 @@ import os
 from cryptography.fernet import Fernet
 from PyQt5.QtCore import QObject, pyqtSignal
 
+
 class UsbCrypt(QObject):
     progress = pyqtSignal(str)
     finished = pyqtSignal()
 
-    def __init__(self, mode, path, usbKeyName):
+    def __init__(self, mode, path, usbName):
         super().__init__()
         self.keyDirectory = ".\keys\\"
         self.mode = mode
         self.path = path
-        self.usbKeyName = usbKeyName
-        
+        self.usbName = usbName
+
         self.filesCount = 0
         for root_dir, cur_dir, files in os.walk(path):
             self.filesCount += len(files)
 
+
     def run(self):
         if self.mode == True:
-            self.encrypt()
+            self.encryptUsb()
         else:
-            self.decrypt()
-        self.finished.emit()
+            self.decryptUsb()
+        return
 
-    def encrypt(self):
-        generatedKey = self.createKey()
-        self.saveKey(generatedKey, self.usbKeyName + ".key")
-        loadedKey = self.loadKey(self.usbKeyName + ".key")
 
-        self.encryptFile(loadedKey, self.path)
+    def encryptUsb(self):
+        generatedKey = Fernet.generate_key()
+        self.saveKey(generatedKey, self.usbName + ".key")
+        self.encryptFile(generatedKey, self.path)
 
-    def decrypt(self):
-        loadedKey = self.loadKey(self.usbKeyName + ".key")
-        self.decryptFile(loadedKey, self.path)
 
-    def createKey(self):
-        key = Fernet.generate_key()
-        return key
+    def decryptUsb(self):
+        key = self.getExistingKey(self.usbName + ".key")
+        if key:
+            self.decryptFile(key, self.path)
+        else:
+            print("\nNo such token")
+
+
+    def getExistingKey(self, usbKeyName):
+        try:
+            with open(self.keyDirectory + usbKeyName, 'rb') as usbKey:
+                key = usbKey.read()
+                if key:
+                    print("LOADED KEY " + str(key))
+                    return key
+        except:
+            return None
+
 
     def saveKey(self, key, usbKeyName):
+        print("SAVING KEY " + str(key))
         with open(self.keyDirectory + usbKeyName, 'wb') as usbKey:
             usbKey.write(key)
-
-    def loadKey(self, usbKeyName):
-        with open(self.keyDirectory + usbKeyName, 'rb') as usbKey:
-            key = usbKey.read()
-        return key
 
 
     def encryptFile(self, key, path):
@@ -73,6 +82,7 @@ class UsbCrypt(QObject):
             file.write("True")
 
         self.progress.emit("100%")
+        self.finished.emit()
         
 
 
@@ -92,6 +102,7 @@ class UsbCrypt(QObject):
                 with open(file_path, 'rb') as file:
                     encrypted = file.read()
 
+                print("PARSED" + str(encrypted[:10]))
                 decrypted = f.decrypt(encrypted)
                 
                 progressCounter += 1
@@ -101,3 +112,4 @@ class UsbCrypt(QObject):
                     file.write(decrypted)
 
         self.progress.emit("100%")
+        self.finished.emit()
