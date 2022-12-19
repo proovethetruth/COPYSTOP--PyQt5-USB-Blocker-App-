@@ -102,14 +102,16 @@ class UsbCrypt(QObject):
                 with open(file_path, 'rb') as file:
                     encrypted = file.read()
 
-                print("PARSED" + str(encrypted[:10]))
-                decrypted = f.decrypt(encrypted)
+                if not (os.path.basename(file_path) == "WPsettings.dat" or os.path.basename(file_path) == "IndexerVolumeGuid"):
+                    decrypted = f.decrypt(encrypted)
                 
                 progressCounter += 1
                 self.progress.emit(str(round((progressCounter / self.filesCount) * 100)) + "%")
 
+                os.remove(file_path)
                 with open(file_path, 'wb') as file:
                     file.write(decrypted)
+                file.close()
 
         self.progress.emit("100%")
         self.finished.emit()
