@@ -18,7 +18,9 @@ class UsbWidget(QWidget):
         self.usbIcon.setPixmap(QPixmap(resource_path("usb_unlocked.png")))
 
         self.usbName = QLabel(inputName)
-        self.usbName.setFont(QFont("Josefin Slab", 15))
+        josephinSlabFont = QFont("Josefin Slab")
+        josephinSlabFont.setPixelSize(20)
+        self.usbName.setFont(josephinSlabFont)
         self.usbName.setStyleSheet("color: white; outline: 2px #433633")
         shadow = QGraphicsDropShadowEffect()
         shadow.setOffset(0, 0)

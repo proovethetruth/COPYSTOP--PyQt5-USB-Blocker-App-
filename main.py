@@ -1,5 +1,6 @@
 
-# Разработка программа защиты от несанкционированного копирования со съемных носителей
+# Разработка программы защиты от несанкционированного копирования со съемных носителей
+import tracemalloc
 
 from UsbWidget import *
 from UsbListener import *
@@ -24,10 +25,14 @@ class BorderlessWindow(QWidget):
 
         QFontDatabase.addApplicationFont(".\\Resourses\\font\\static\\JosefinSlab-SemiBold.ttf")
         QFontDatabase.addApplicationFont(".\\Resourses\\font\\static\\JosefinSlab-Light.ttf")
+        josefinSlabFont = QFont("Josefin Slab")
+        josefinSlabFont.setPixelSize(38)
         self.nameLabel = QLabel("COPYSTOP", self)
-        self.nameLabel.setFont(QFont("Josefin Slab", 28))
+        josefinSlabFont.setPixelSize(38)
+        self.nameLabel.setFont(josefinSlabFont)
         self.nameLabel.setStyleSheet("color: white")
-        self.nameLabel.move(7, 7)
+        self.nameLabel.move(5, 6)
+
 
         buttonStyleSheet = ("""
             QPushButton::hover {
@@ -40,13 +45,13 @@ class BorderlessWindow(QWidget):
             """)
 
         self.hideButton = QPushButton("_", self)
-        self.hideButton.setFont(QFont("Josefin Slab", 27))
+        self.hideButton.setFont(josefinSlabFont)
         self.hideButton.move(250, 0)
         self.hideButton.setStyleSheet(buttonStyleSheet)
         self.hideButton.clicked.connect(self.showMinimized)
 
         self.exitButton = QPushButton("X", self)
-        self.exitButton.setFont(QFont("Josefin Slab", 27))
+        self.exitButton.setFont(josefinSlabFont)
         self.exitButton.move(290, 11)
         self.exitButton.setStyleSheet(buttonStyleSheet)
         self.exitButton.clicked.connect(sys.exit)
@@ -56,11 +61,12 @@ class BorderlessWindow(QWidget):
         self.contentBox.move(15, 67)
 
         self.usbName = QLabel("USB NAME")
-        self.usbName.setFont(QFont("Josefin Slab", 15))
+        josefinSlabFont.setPixelSize(20)
+        self.usbName.setFont(josefinSlabFont)
         self.usbName.setStyleSheet("color: #433633")
 
         self.usbStatus = QLabel("STATUS")
-        self.usbStatus.setFont(QFont("Josefin Slab", 15))
+        self.usbStatus.setFont(josefinSlabFont)
         self.usbStatus.setStyleSheet("color: #433633")
 
         self.titleWidget = QWidget()
@@ -158,17 +164,19 @@ class BorderlessWindow(QWidget):
         
         self.infoLayout = QVBoxLayout()
         self.infoHeader = QLabel("Information")
-        self.infoHeader.setFont(QFont("Josefin Slab", 20))
+        josefinSlabFont.setPixelSize(30)
+        self.infoHeader.setFont(josefinSlabFont)
         self.infoHeader.setStyleSheet("color: white")
 
         self.infoText = QLabel("This is a simple PyQt5 Application, which allows user to prevent unauthorized copying from USB drives.")
-        self.infoText.setFont(QFont("Josefin Slab", 13))
+        josefinSlabFont.setPixelSize(17)
+        self.infoText.setFont(josefinSlabFont)
         self.infoText.setStyleSheet("color: white")
         self.infoText.setWordWrap(True)
         self.infoText.setContentsMargins(20, 0, 0, 0)
 
         self.madeBy = QLabel("Made by >seeker_   ")
-        self.madeBy.setFont(QFont("Josefin Slab", 13))
+        self.madeBy.setFont(josefinSlabFont)
         self.madeBy.setStyleSheet("color: white")
         
         self.infoLayout.addWidget(self.infoHeader, 0, Qt.AlignCenter)
@@ -185,9 +193,10 @@ class BorderlessWindow(QWidget):
         self.infoBox.hide()
 
         self.version = QLabel("VERSION: 1.0", self)
-        self.version.setFont(QFont("Josefin Slab", 19))
+        josefinSlabFont.setPixelSize(30)
+        self.version.setFont(josefinSlabFont)
         self.version.setStyleSheet("color: white")
-        self.version.move(160, 357)
+        self.version.move(140, 354)
 
         self.show()
 
